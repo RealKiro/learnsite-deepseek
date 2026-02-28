@@ -40,7 +40,7 @@ RUN pip install --no-cache-dir \
     Flask-Cors==4.0.0 \
     gevent==23.9.1 \
     edge-tts==6.1.10 \
-    opencv-python-headless==4.8.1.78 \
+    opencv-python-headless>=4.9.0.80 \
     paddlepaddle==3.0.0 \
     paddleocr==2.9.1 \
     translate==3.6.1 \
