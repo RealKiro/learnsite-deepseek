@@ -68,6 +68,9 @@ COPY --from=builder /build/deepseek /app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
+# 预下载 paddleocr 模型，加快首次启动速度
+RUN python -c "from paddleocr import PaddleOCR; PaddleOCR(use_angle_cls=True, lang='ch')"
+
 RUN mkdir -p /app/downloads /app/uploads /app/downmp3
 
 ENV FLASK_APP=deepseek.py
