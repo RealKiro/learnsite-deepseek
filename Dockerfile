@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir \
     gevent==23.9.1 \
     edge-tts==6.1.10 \
     opencv-python-headless==4.8.1.78 \
-    paddlepaddle==2.6.0 \
+    paddlepaddle==2.6.2 \
     paddleocr==2.7.3 \
     translate==3.6.1 \
     requests==2.31.0 \
