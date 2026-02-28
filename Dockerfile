@@ -1,11 +1,7 @@
-# 阶段1: 构建阶段
-FROM python:3.11-slim-bookworm AS builder
-
-WORKDIR /build
+# 阶段1: 安装依赖
+FROM python:3.11-slim-bookworm AS deps
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    curl \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
@@ -13,13 +9,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libgomp1 \
     libfontconfig1 \
-    libice6 \
-    libx11-6 \
-    libxext6 \
-    libxrender1 \
-    libfreetype6 \
-    libglib2.0-0 \
     ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip download --no-cache-dir --dest /tmp/wheels \
+    Flask==3.0.0 \
+    Flask-Cors==4.0.0 \
+    gevent==23.9.1 \
+    edge-tts==6.1.10 \
+    opencv-python-headless>=4.9.0.80 \
+    paddlepaddle==3.0.0 \
+    paddleocr==2.9.1 \
+    translate==3.6.1 \
+    requests==2.31.0 \
+    numpy==1.26.2
+
+# 阶段2: 下载源码并配置
+FROM python:3.11-slim-bookworm AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sL https://github.com/RealKiro/learnsite/archive/refs/heads/main.tar.gz | tar xz && \
@@ -33,21 +45,10 @@ RUN sed -i 's/^DEEPSEEK_API_KEY = ""/DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_
     sed -i 's/^PHOTO_API_KEY = "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f"/PHOTO_API_KEY = os.getenv("PHOTO_API_KEY", "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f")/' deepseek.py && \
     sed -i 's/^HostIp = "127.0.0.1"/HostIp = os.getenv("HOST_IP", "0.0.0.0")/' deepseek.py
 
-RUN pip install --no-cache-dir --upgrade pip wheel
+COPY --from=deps /tmp/wheels /tmp/wheels
+RUN pip install --no-cache-dir --no-index --find-links /tmp/wheels Flask==3.0.0 Flask-Cors==4.0.0 gevent==23.9.1 edge-tts==6.1.10 opencv-python-headless>=4.9.0.80 paddlepaddle==3.0.0 paddleocr==2.9.1 translate==3.6.1 requests==2.31.0 numpy==1.26.2
 
-RUN pip install --no-cache-dir \
-    Flask==3.0.0 \
-    Flask-Cors==4.0.0 \
-    gevent==23.9.1 \
-    edge-tts==6.1.10 \
-    opencv-python-headless>=4.9.0.80 \
-    paddlepaddle==3.0.0 \
-    paddleocr==2.9.1 \
-    translate==3.6.1 \
-    requests==2.31.0 \
-    numpy==1.26.2
-
-# 阶段2: 运行阶段 - 使用 Debian Slim
+# 阶段3: 运行阶段
 FROM python:3.11-slim-bookworm AS runner
 
 WORKDIR /app
@@ -60,9 +61,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxrender1 \
     libgomp1 \
     libfontconfig1 \
-    libice6 \
-    libx11-6 \
-    libfreetype6 \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
