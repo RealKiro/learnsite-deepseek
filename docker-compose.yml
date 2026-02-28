@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  deepseek:
+    image: orzg/learnsite-deepseek:latest
+    container_name: deepseek-ai
+    ports:
+      # 左边是宿主机端口，右边是容器端口
+      # 如果宿主机2000端口被占用，可以改成其他端口如 "8080:2000"
+      - "2000:2000"
+    environment:
+      # ====== API 密钥配置 ======
+      # 必填：DeepSeek API Key（从 https://platform.deepseek.com 获取）
+      # 示例：sk-xxxxxxxxxxxxxxxxxxxxxxxx
+      - DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
+      
+      # 可选：Qwen API Key（从阿里云 DashScope 获取）
+      # 如不使用 Qwen 功能，可留空
+      - QWEN_API_KEY=
+      
+      # 可选：图片生成 API Key（从智谱 AI 获取）
+      # 如不使用图片生成功能，可留空
+      - PHOTO_API_KEY=
+      
+      # ====== 服务配置 ======
+      # 监听地址，0.0.0.0 表示监听所有网卡
+      - HOST_IP=0.0.0.0
+    volumes:
+      # 将容器内的下载目录映射到宿主机，确保持久化数据
+      # 格式：宿主机目录:容器目录
+      - ./download:/app/downloads
+      - ./uploads:/app/uploads
+      - ./downmp3:/app/downmp3
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:2000/aippt"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
