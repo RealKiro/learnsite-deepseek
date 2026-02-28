@@ -10,8 +10,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
-    libxrender-dev \
+    libxrender1 \
     libgomp1 \
+    libfontconfig1 \
+    libice6 \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    libfreetype6 \
+    libglib2.0-0 \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -sL https://github.com/RealKiro/learnsite/archive/refs/heads/main.tar.gz | tar xz && \
@@ -20,7 +28,6 @@ RUN curl -sL https://github.com/RealKiro/learnsite/archive/refs/heads/main.tar.g
 
 WORKDIR /build/deepseek
 
-# 替换源码中的硬编码配置为环境变量
 RUN sed -i 's/^DEEPSEEK_API_KEY = ""/DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")/' deepseek.py && \
     sed -i 's/^Qwen_API_KEY = "sk-e2f0cdd2fd04446c83e698a4bea0e40f"/Qwen_API_KEY = os.getenv("QWEN_API_KEY", "sk-e2f0cdd2fd04446c83e698a4bea0e40f")/' deepseek.py && \
     sed -i 's/^PHOTO_API_KEY = "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f"/PHOTO_API_KEY = os.getenv("PHOTO_API_KEY", "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f")/' deepseek.py && \
@@ -34,24 +41,30 @@ RUN pip install --no-cache-dir \
     gevent==23.9.1 \
     edge-tts==6.1.10 \
     opencv-python-headless==4.8.1.78 \
-    paddlepaddle==2.6.2 \
-    paddleocr==2.7.3 \
+    paddlepaddle==3.0.0 \
+    paddleocr==2.9.1 \
     translate==3.6.1 \
     requests==2.31.0 \
     numpy==1.26.2
 
-# 阶段2: 运行阶段 - 使用 Alpine
-FROM python:3.11-alpine AS runner
+# 阶段2: 运行阶段 - 使用 Debian Slim
+FROM python:3.11-slim-bookworm AS runner
 
 WORKDIR /app
 
-RUN apk add --no-cache \
-    glib \
-    libxrender \
-    libxext \
-    libstdc++ \
-    freetype \
-    ffmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
+    libgomp1 \
+    libfontconfig1 \
+    libice6 \
+    libx11-6 \
+    libfreetype6 \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /build/deepseek /app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
@@ -64,7 +77,7 @@ ENV PYTHONUNBUFFERED=1
 
 EXPOSE 2000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:2000/aippt || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:2000/aippt')" || exit 1
 
 CMD ["python", "deepseek.py"]
