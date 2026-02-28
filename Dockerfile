@@ -46,13 +46,11 @@ FROM python:3.11-alpine AS runner
 WORKDIR /app
 
 RUN apk add --no-cache \
-    libglib \
-    libsm6 \
+    glib \
     libxrender \
     libxext \
-    libgomp \
     libstdc++ \
-    ttf-freefont \
+    freetype \
     ffmpeg
 
 COPY --from=builder /build/deepseek /app
