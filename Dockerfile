@@ -16,20 +16,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 设置工作目录
 WORKDIR /app
 
-# 从 GitHub 拉取 deepseek 模块（已包含 update 和 cleanup）
-RUN apt-get update && apt-get install -y curl && \
-    curl -sL https://github.com/RealKiro/learnsite/archive/refs/heads/main.tar.gz | tar xz --strip-components=2 -C /app learnsite-main/deepseek && \
-    apt-get remove -y curl && apt-get autoremove -y && \
+# 安装 git 并从 GitHub 拉取 deepseek 模块
+RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    git clone --depth 1 --branch main https://github.com/RealKiro/learnsite.git /tmp/learnsite && \
+    cp -r /tmp/learnsite/deepseek/* /app/ && \
+    rm -rf /tmp/learnsite && \
+    apt-get remove -y git && apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
 
 # 复制自定义入口页面（如果需要覆盖）
 COPY index.html /app/
 
 # 修改源码以支持环境变量（避免硬编码 API Key）
-RUN sed -i 's/^DEEPSEEK_API_KEY = "sk-.*"/DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")/' /app/deepseek.py && \
-    sed -i 's/^Qwen_API_KEY = "sk-.*"/Qwen_API_KEY = os.getenv("QWEN_API_KEY", "sk-e2f0cdd2fd04446c83e698a4bea0e40f")/' /app/deepseek.py && \
-    sed -i 's/^PHOTO_API_KEY = ".*"/PHOTO_API_KEY = os.getenv("PHOTO_API_KEY", "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f")/' /app/deepseek.py && \
-    sed -i 's/^HostIp = "127.0.0.1"/HostIp = os.getenv("HOST_IP", "0.0.0.0")/' /app/deepseek.py
+RUN sed -i 's/DEEPSEEK_API_URL = "https:\/\/api.deepseek.com\/v1\/chat\/completions"/DEEPSEEK_API_URL = os.getenv("DEEPSEEK_API_URL", "https:\/\/api.deepseek.com\/v1\/chat\/completions")/' /app/deepseek.py && \
+    sed -i 's/DEEPSEEK_MODEL = "deepseek-chat"/DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")/' /app/deepseek.py
 
 # 安装 Python 依赖（使用兼容版本）
 RUN pip install --no-cache-dir torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu && \
