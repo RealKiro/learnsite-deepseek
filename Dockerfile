@@ -16,14 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 设置工作目录
 WORKDIR /app
 
-# 复制项目源码（从 GitHub 下载或本地复制）
-# 方式1：从 GitHub 拉取（推荐，保证最新）
-RUN apt-get install -y curl && \
+# 从 GitHub 拉取 deepseek 模块（已包含 update 和 cleanup）
+RUN apt-get update && apt-get install -y curl && \
     curl -sL https://github.com/RealKiro/learnsite/archive/refs/heads/main.tar.gz | tar xz --strip-components=2 -C /app learnsite-main/deepseek && \
-    apt-get remove -y curl && apt-get autoremove -y
-
-# 方式2：如果使用本地构建，注释上面，取消下面
-# COPY ./deepseek /app
+    apt-get remove -y curl && apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
 
 # 复制自定义入口页面（如果需要覆盖）
 COPY index.html /app/
