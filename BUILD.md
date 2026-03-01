@@ -13,7 +13,7 @@
 | 图片生成 | `/photo` | pollinations 免费图生 | 无需 API |
 | 智谱图片 | `/photos` | 智谱 AI 图片生成 | 智谱 API |
 | 语音合成 | `/voice` | 文本转语音 | edge-tts |
-| 文字识别 | `/ocr` | 图片文字识别 | paddleocr |
+| 文字识别 | `/ocr` | 图片文字识别 | EasyOCR |
 | 中英翻译 | `/translator` | 中英文互译 | translate |
 | 文件上传 | `/upload` | 文件上传到服务器 | 本地存储 |
 
@@ -109,7 +109,7 @@ deepseek/
 |------|------|
 | 镜像地址 | `orzg/learnsite-deepseek:latest` |
 | 基础镜像 | python:3.11-slim-bookworm |
-| 镜像体积 | 约 1-2GB（主要由 paddleocr 和 opencv 贡献） |
+| 镜像体积 | 约 800MB（主要由 EasyOCR 和 PyTorch 贡献） |
 
 ## 环境变量
 
@@ -205,7 +205,7 @@ curl -sL https://github.com/RealKiro/learnsite/archive/refs/heads/main.tar.gz
 
 ## 注意事项
 
-1. paddleocr 模型已在构建时预下载，客户首次启动无需等待
+1. EasyOCR 模型已在构建时预下载，客户首次启动无需等待
 2. OCR 功能依赖较重，如不需要可基于此镜像自定义精简
 3. 确保宿主机 2000 端口已开放
 4. 生产环境建议使用自己的 API Key，避免默认 Key 额度用尽

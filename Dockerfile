@@ -38,14 +38,13 @@ RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
     gevent==23.9.1 \
     edge-tts==6.1.10 \
     opencv-python-headless>=4.9.0.80 \
-    paddlepaddle==3.0.0 \
-    paddleocr==2.9.1 \
+    easyocr==1.7.0 \
     translate==3.6.1 \
     requests==2.31.0 \
     numpy==1.26.2
 
-# 预下载 OCR 模型（避免首次启动下载慢）
-RUN python -c "from paddleocr import PaddleOCR; PaddleOCR(use_angle_cls=True, lang='ch')"
+# 预下载 EasyOCR 模型（避免首次启动下载慢）
+RUN python -c "import easyocr; easyocr.Reader(['ch_sim', 'en'], gpu=False, verbose=False)"
 
 # 创建必要的目录
 RUN mkdir -p /app/downloads /app/uploads /app/downmp3
