@@ -29,11 +29,15 @@ services:
       # 监听地址，0.0.0.0 表示监听所有网卡
       - HOST_IP=0.0.0.0
     volumes:
-      # 将容器内的目录映射到宿主机，确保持久化数据
-      # 格式：宿主机目录:容器目录
-      - ./download:/app/downloads
-      - ./uploads:/app/uploads
-      - ./downmp3:/app/downmp3
+      # 开发模式：映射宿主机源码目录（覆盖容器内源码）
+      # 群晖示例：/volume1/docker/learnsite/deepseek:/app
+      - /volume1/docker/learnsite/deepseek:/app
+
+      # 数据持久化目录
+      # 如需单独映射数据目录，可保留下面配置（会覆盖上面的 /app 子目录）
+      # - ./download:/app/downloads
+      # - ./uploads:/app/uploads
+      # - ./downmp3:/app/downmp3
     # 自动重启
     restart: unless-stopped
     healthcheck:
