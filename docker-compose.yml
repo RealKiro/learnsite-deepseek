@@ -6,7 +6,7 @@ services:
     image: orzg/learnsite-deepseek:latest
     # 容器名称，方便管理
     container_name: learnsite-deepseek
-    network_mode: bridge
+    network_mode: host  # 如果宿主机2000端口被占用请将 host 改为 bridge 
     ports:
       # 左边是宿主机端口，右边是容器端口
       # 格式：宿主机端口:容器端口
@@ -38,7 +38,7 @@ services:
       # 群晖示例：/volume1/docker/learnsite/app/deepseek:/app
       - /volume1/docker/learnsite/app/deepseek:/app
     # 自动重启
-    restart: unless-stopped
+    restart: always
     # 健康检查配置（首次启动建议注释掉，便于排查问题）
     # healthcheck:
     #   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:2000/health')"]
