@@ -24,6 +24,7 @@ learnsite-deepseek/
 ├── Dockerfile           # Docker 构建文件
 ├── docker-compose.yml  # Docker Compose 配置
 ├── .dockerignore       # 忽略文件
+├── index.html         # Web 统一入口页面
 └── .github/
     └── workflows/
         └── ci.yml      # GitHub Actions CI/CD
@@ -53,7 +54,7 @@ docker-compose up -d
 
 ### 3. 访问服务
 
-- 服务地址：`http://localhost:2000`
+- Web 入口：`http://localhost:2000`（统一功能入口页面）
 - 健康检查：`http://localhost:2000/health`
 
 ## 端口说明
