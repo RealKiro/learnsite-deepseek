@@ -31,18 +31,18 @@ RUN sed -i 's/^DEEPSEEK_API_KEY = "sk-.*"/DEEPSEEK_API_KEY = os.getenv("DEEPSEEK
     sed -i 's/^PHOTO_API_KEY = ".*"/PHOTO_API_KEY = os.getenv("PHOTO_API_KEY", "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f")/' /app/deepseek.py && \
     sed -i 's/^HostIp = "127.0.0.1"/HostIp = os.getenv("HOST_IP", "0.0.0.0")/' /app/deepseek.py
 
-# 安装 Python 依赖（先安装 easyocr，再安装其他依赖）
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+# 安装 Python 依赖（使用兼容版本）
+RUN pip install --no-cache-dir torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir easyocr && \
     pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ \
     Flask==3.0.0 \
     Flask-CORS==4.0.0 \
     gevent==23.9.1 \
     edge-tts==6.1.10 \
-    opencv-python-headless>=4.9.0.80 \
+    opencv-python-headless==4.10.0.84 \
     translate==3.6.1 \
     requests==2.31.0 \
-    numpy==1.26.2
+    numpy==1.26.4
 
 # 预下载 EasyOCR 模型（避免首次启动下载慢）
 RUN python -c "import easyocr; easyocr.Reader(['ch_sim', 'en'], gpu=False, verbose=False)"
