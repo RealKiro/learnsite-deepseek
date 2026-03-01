@@ -54,7 +54,7 @@ docker-compose up -d
 ### 3. 访问服务
 
 - 服务地址：`http://localhost:2000`
-- 健康检查：`http://localhost:2000/`
+- 健康检查：`http://localhost:2000/health`
 
 ## 端口说明
 
