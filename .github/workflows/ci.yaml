@@ -37,37 +37,56 @@ jobs:
       - name: Run container simulation test
         run: |
           echo "Starting container test..."
-          
+
+          # 启动容器（使用测试 API Key）
           CONTAINER_ID=$(docker run -d --rm \
             -e DEEPSEEK_API_KEY=test_key_123 \
             -e QWEN_API_KEY=test_key_456 \
             -e PHOTO_API_KEY=test_key_789 \
             -p 2000:2000 \
             orzg/learnsite-deepseek:latest)
-          
+
           echo "Container started: $CONTAINER_ID"
-          
-          echo "Waiting for container to be ready..."
-          sleep 30
-          
-          echo "Testing health endpoint..."
+          echo "Waiting for container to be ready (up to 90 seconds)..."
+
+          # 循环等待，直到健康状态变为 'healthy' 或超时
+          HEALTH_STATUS="starting"
+          MAX_WAIT=90
+          WAIT_INTERVAL=10
+          ELAPSED=0
+
+          while [ "$HEALTH_STATUS" != "healthy" ] && [ $ELAPSED -lt $MAX_WAIT ]; do
+            sleep $WAIT_INTERVAL
+            ELAPSED=$((ELAPSED + WAIT_INTERVAL))
+            HEALTH_STATUS=$(docker inspect --format='{{.State.Health.Status}}' $CONTAINER_ID 2>/dev/null || echo "unknown")
+            echo "Health status after ${ELAPSED}s: $HEALTH_STATUS"
+          done
+
+          # 最终健康状态
+          FINAL_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' $CONTAINER_ID 2>/dev/null || echo "unknown")
+          echo "Final health status: $FINAL_HEALTH"
+
+          # 获取 HTTP 响应码
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:2000/health || echo "000")
-          echo "Health check HTTP code: $HTTP_CODE"
-          
-          CONTAINER_STATUS=$(docker inspect -f '{{.State.Running}}' $CONTAINER_ID 2>/dev/null || echo "false")
-          echo "Container running status: $CONTAINER_STATUS"
-          
-          echo "Container logs:"
-          docker logs $CONTAINER_ID 2>&1 | head -30
-          
-          echo "Stopping container..."
-          docker stop $CONTAINER_ID 2>/dev/null || true
-          
-          if [ "$HTTP_CODE" = "500" ] || [ "$HTTP_CODE" = "405" ] || [ "$HTTP_CODE" = "000" ] || [ "$CONTAINER_STATUS" = "true" ]; then
-            echo "✅ Test passed! Container is working."
+          echo "HTTP health endpoint code: $HTTP_CODE"
+
+          # 获取容器运行状态
+          CONTAINER_RUNNING=$(docker inspect -f '{{.State.Running}}' $CONTAINER_ID 2>/dev/null || echo "false")
+          echo "Container running: $CONTAINER_RUNNING"
+
+          # 输出最后 30 行日志（便于调试）
+          echo "Last 30 lines of container log:"
+          docker logs $CONTAINER_ID 2>&1 | tail -30
+
+          # 判断标准：健康状态为 healthy 或 HTTP 状态码为 200 即视为通过
+          if [ "$FINAL_HEALTH" = "healthy" ] || [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Test passed! Container is working properly."
+            docker stop $CONTAINER_ID 2>/dev/null || true
             exit 0
           else
             echo "❌ Test failed!"
+            echo "Health status: $FINAL_HEALTH, HTTP code: $HTTP_CODE"
+            docker stop $CONTAINER_ID 2>/dev/null || true
             exit 1
           fi
 
