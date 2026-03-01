@@ -18,9 +18,9 @@ WORKDIR /app
 
 # 安装 git 并从 GitHub 拉取 deepseek 模块
 RUN apt-get update && apt-get install -y --no-install-recommends git && \
-    rm -rf /app && \
+    mkdir -p /app && \
     git clone --depth 1 --branch main https://github.com/RealKiro/learnsite.git /tmp/learnsite && \
-    cp -r /tmp/learnsite/deepseek /app && \
+    cp -r /tmp/learnsite/deepseek/* /app/ && \
     rm -rf /tmp/learnsite && \
     apt-get remove -y git && apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
