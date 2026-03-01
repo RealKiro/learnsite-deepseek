@@ -54,7 +54,7 @@ docker-compose up -d
 ### 3. 访问服务
 
 - 服务地址：`http://localhost:2000`
-- 健康检查：`http://localhost:2000/aippt`
+- 健康检查：`http://localhost:2000/`
 
 ## 端口说明
 
@@ -100,8 +100,8 @@ docker-compose up -d
 # 查看容器日志
 docker logs deepseek-ai
 
-# 手动运行查看错误
-docker run -it orzg/learnsite-deepseek:latest python deepseek.py
+# 手动运行查看错误（需配置环境变量）
+docker run -it -e DEEPSEEK_API_KEY=your_key orzg/learnsite-deepseek:latest python deepseek.py
 ```
 
 ### 端口被占用
