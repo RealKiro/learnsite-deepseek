@@ -18,14 +18,12 @@ WORKDIR /app
 
 # 安装 git 并从 GitHub 拉取 deepseek 模块
 RUN apt-get update && apt-get install -y --no-install-recommends git && \
+    rm -rf /app && \
     git clone --depth 1 --branch main https://github.com/RealKiro/learnsite.git /tmp/learnsite && \
-    cp -r /tmp/learnsite/deepseek/* /app/ && \
+    cp -r /tmp/learnsite/deepseek /app && \
     rm -rf /tmp/learnsite && \
     apt-get remove -y git && apt-get autoremove -y && \
     rm -rf /var/lib/apt/lists/*
-
-# 复制自定义入口页面（如果需要覆盖）
-COPY index.html /app/
 
 # 修改源码以支持环境变量（避免硬编码 API Key）
 RUN sed -i 's/DEEPSEEK_API_URL = "https:\/\/api.deepseek.com\/v1\/chat\/completions"/DEEPSEEK_API_URL = os.getenv("DEEPSEEK_API_URL", "https:\/\/api.deepseek.com\/v1\/chat\/completions")/' /app/deepseek.py && \
