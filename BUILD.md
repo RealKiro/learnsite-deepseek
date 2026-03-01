@@ -24,13 +24,12 @@ learnsite-deepseek/
 ├── Dockerfile           # Docker 构建文件（三阶段构建）
 ├── docker-compose.yml  # Docker Compose 配置
 ├── .dockerignore       # 忽略文件
-├── index.html          # Web 统一入口页面（现代扁平化科技风）
 ├── README.md           # 项目说明
-├── BUILD.md            # 构建指南（本文件）
-├── LICENSE             # 许可证
+├── BUILD.md           # 构建指南（本文件）
+├── LICENSE            # 许可证
 └── .github/
     └── workflows/
-        └── ci.yml      # GitHub Actions 自动构建
+        └── ci.yml     # GitHub Actions 自动构建
 ```
 
 ## 快速开始
@@ -47,13 +46,15 @@ environment:
   # 申请地址：https://platform.deepseek.com
   - DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
   
-  # 【可选】智谱 AI API Key（用于 /photos 图片生成）
-  # 申请地址：https://open.bigmodel.cn
-  - PHOTO_API_KEY=
+  # 【可选】DeepSeek API 地址
+  # 默认：https://api.deepseek.com/v1/chat/completions
+  # 硅基流动示例：https://api.siliconflow.cn/v1/chat/completions
+  # - DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
   
-  # 【可选】Qwen API Key（阿里云 DashScope）
-  # 申请地址：https://dashscope.console.aliyun.com
-  - QWEN_API_KEY=
+  # 【可选】DeepSeek 模型名称
+  # 默认：deepseek-chat
+  # 硅基流动可用：Qwen/Qwen2.5-7B-Instruct、deepseek-ai/DeepSeek-V2-Chat 等
+  # - DEEPSEEK_MODEL=deepseek-chat
 ```
 
 2. **启动服务**
@@ -64,7 +65,7 @@ docker-compose up -d
 
 3. **访问服务**
 
-- Web 入口：`http://localhost:2000`（统一功能入口页面）
+- 入口页面：`http://localhost:2000/`（导航到各功能页面）
 - 健康检查：`http://localhost:2000/health`
 - 配置状态：`http://localhost:2000/config`
 
@@ -79,21 +80,17 @@ volumes:
   # 映射宿主机源码目录
   # 群晖示例：
   - /volume1/docker/learnsite/app/deepseek:/app
-  
-  # 数据持久化（可选，如需保留生成的文件）
-  # - ./download:/app/downloads
-  # - ./uploads:/app/uploads
-  # - ./downmp3:/app/downmp3
 ```
 
 **宿主机目录结构要求：**
 ```
 deepseek/
 ├── deepseek.py      # 主程序
-├── index.html       # 入口页面
-├── downloads/       # 图片生成目录
+├── index.html       # 入口页面（导航页）
+├── *.html           # 各功能页面
+├── downloads/      # 图片生成目录
 ├── uploads/         # 上传文件目录
-└── downmp3/         # 语音合成目录
+└── downmp3/        # 语音合成目录
 ```
 
 ## 端口说明
@@ -116,12 +113,15 @@ deepseek/
 | 变量 | 必填 | 说明 | 默认值 |
 |------|------|------|--------|
 | DEEPSEEK_API_KEY | ✅ 是 | DeepSeek API Key | - |
+| DEEPSEEK_API_URL | 否 | API 地址 | https://api.deepseek.com/v1/chat/completions |
+| DEEPSEEK_MODEL | 否 | 模型名称 | deepseek-chat |
 | PHOTO_API_KEY | 否 | 智谱 AI API Key | 预设测试 Key |
 | QWEN_API_KEY | 否 | 阿里云 Qwen API Key | 预设测试 Key |
 | HOST_IP | 否 | 监听地址 | 0.0.0.0 |
 
 **API 申请地址：**
 - DeepSeek: https://platform.deepseek.com
+- 硅基流动: https://cloud.siliconflow.cn
 - 智谱 AI: https://open.bigmodel.cn
 - 阿里云 Qwen: https://dashscope.console.aliyun.com
 
@@ -148,9 +148,6 @@ deepseek/
 ```bash
 # 查看容器日志
 docker logs learnsite-deepseek
-
-# 手动运行查看错误（需配置环境变量）
-docker run -it --rm -e DEEPSEEK_API_KEY=your_key -p 2000:2000 orzg/learnsite-deepseek:latest python deepseek.py
 ```
 
 ### 端口被占用
@@ -164,48 +161,26 @@ ports:
 
 ### API 调用失败
 
-检查环境变量是否正确配置：
-
-```bash
-docker exec learnsite-deepseek env | grep API
-```
-
-### 查看配置状态
-
-访问 `http://localhost:2000/config` 查看 API 配置是否生效：
+访问 `http://localhost:2000/config` 查看 API 配置状态：
 
 ```json
 {
+  "api_url": "https://api.deepseek.com/v1/chat/completions",
+  "api_model": "deepseek-chat",
   "deepseek_configured": true,
   "qwen_configured": false,
   "photo_configured": false
 }
 ```
 
-## 构建优化说明
-
-采用三阶段构建减小镜像体积：
-
-1. **deps 阶段**：下载 pip 包到 wheels 目录
-2. **builder 阶段**：安装依赖并配置源码
-3. **runner 阶段**：复制必要文件到最终镜像
-
-## 源码获取
-
-Dockerfile 会自动从 GitHub 下载源码：
-
-```bash
-curl -sL https://github.com/RealKiro/learnsite/archive/refs/heads/main.tar.gz
-```
-
-**注意**：源码中的 deepseek.py 已包含以下路由：
-- `/health` - 健康检查
-- `/` - Web 入口页面
-- `/config` - 配置状态查询
-
 ## 注意事项
 
 1. EasyOCR 模型已在构建时预下载，客户首次启动无需等待
-2. OCR 功能依赖较重，如不需要可基于此镜像自定义精简
-3. 确保宿主机 2000 端口已开放
-4. 生产环境建议使用自己的 API Key，避免默认 Key 额度用尽
+2. 确保宿主机 2000 端口已开放
+3. 生产环境建议使用自己的 API Key，避免默认 Key 额度用尽
+
+## 相关仓库
+
+- LearnSite 主项目: https://github.com/RealKiro/learnsite
+- Docker 项目: https://github.com/RealKiro/learnsite-deepseek
+- Docker Hub: orzg/learnsite-deepseek
