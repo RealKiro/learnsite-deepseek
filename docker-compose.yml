@@ -5,7 +5,8 @@ services:
     # 镜像名称：Docker Hub 用户名/仓库名:版本
     image: orzg/learnsite-deepseek:latest
     # 容器名称，方便管理
-    container_name: deepseek-ai
+    container_name: learnsite-deepseek
+    network_mode: bridge
     ports:
       # 左边是宿主机端口，右边是容器端口
       # 格式：宿主机端口:容器端口
@@ -13,37 +14,35 @@ services:
       - "2000:2000"
     environment:
       # ====== API 密钥配置 ======
-      # 必填：DeepSeek API Key（从 https://platform.deepseek.com 获取）
+      
+      # 【必填】DeepSeek API Key
+      # 申请地址：https://platform.deepseek.com
       # 示例：sk-xxxxxxxxxxxxxxxxxxxxxxxx
       - DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
       
-      # 可选：Qwen API Key（从阿里云 DashScope 获取）
-      # 如不使用 Qwen 功能，可留空
+      # 【可选】Qwen API Key（阿里云 DashScope）
+      # 申请地址：https://dashscope.console.aliyun.com
+      # 如不填写则使用默认测试 Key（可能有限额）
       - QWEN_API_KEY=
       
-      # 可选：图片生成 API Key（从智谱 AI 获取）
-      # 如不使用图片生成功能，可留空
+      # 【可选】智谱 AI API Key（用于 /photos 图片生成）
+      # 申请地址：https://open.bigmodel.cn
+      # 如不填写则使用默认测试 Key（可能有限额）
       - PHOTO_API_KEY=
       
       # ====== 服务配置 ======
       # 监听地址，0.0.0.0 表示监听所有网卡
       - HOST_IP=0.0.0.0
     volumes:
-      # 开发模式：映射宿主机源码目录（覆盖容器内源码）
-      # 群晖示例：/volume1/docker/learnsite/deepseek:/app
-      - /volume1/docker/learnsite/deepseek:/app
-
-      # 数据持久化目录
-      # 如需单独映射数据目录，可保留下面配置（会覆盖上面的 /app 子目录）
-      # - ./download:/app/downloads
-      # - ./uploads:/app/uploads
-      # - ./downmp3:/app/downmp3
+      # 映射宿主机源码目录（用于开发调试）
+      # 群晖示例：/volume1/docker/learnsite/app/deepseek:/app
+      - /volume1/docker/learnsite/app/deepseek:/app
     # 自动重启
     restart: unless-stopped
-    healthcheck:
-      # 健康检查配置
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:2000/health')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+    # 健康检查配置（首次启动建议注释掉，便于排查问题）
+    # healthcheck:
+    #   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:2000/health')"]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 60s

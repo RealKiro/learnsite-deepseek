@@ -42,11 +42,13 @@ WORKDIR /build/deepseek
 
 COPY index.html .
 
-RUN sed -i 's/^DEEPSEEK_API_KEY = ""/DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")/' deepseek.py && \
-    sed -i 's/^Qwen_API_KEY = "sk-e2f0cdd2fd04446c83e698a4bea0e40f"/Qwen_API_KEY = os.getenv("QWEN_API_KEY", "sk-e2f0cdd2fd04446c83e698a4bea0e40f")/' deepseek.py && \
-    sed -i 's/^PHOTO_API_KEY = "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f"/PHOTO_API_KEY = os.getenv("PHOTO_API_KEY", "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f")/' deepseek.py && \
-    sed -i 's/^HostIp = "127.0.0.1"/HostIp = os.getenv("HOST_IP", "0.0.0.0")/' deepseek.py && \
-    echo '@app.route("/health")\ndef health():\n    return "OK"\n\n@app.route("/")\ndef index():\n    with open("index.html", "r", encoding="utf-8") as f:\n        return f.read()' >> deepseek.py
+# 替换 API Key 为环境变量（支持客户在 docker-compose 中配置）
+RUN sed -i 's/^DEEPSEEK_API_KEY = "sk-.*"/DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")/' deepseek.py && \
+    sed -i 's/^Qwen_API_KEY = "sk-.*"/Qwen_API_KEY = os.getenv("QWEN_API_KEY", "sk-e2f0cdd2fd04446c83e698a4bea0e40f")/' deepseek.py && \
+    sed -i 's/^PHOTO_API_KEY = ".*"/PHOTO_API_KEY = os.getenv("PHOTO_API_KEY", "67121ff795f24159a4f2eaaabb89cc78.DDAMTxnDEFuiYR7f")/' deepseek.py && \
+    sed -i 's/^HostIp = "127.0.0.1"/HostIp = os.getenv("HOST_IP", "0.0.0.0")/' deepseek.py
+
+# 注意：/health、/、/config 路由已在源码 deepseek.py 中定义
 
 COPY --from=deps /tmp/wheels /tmp/wheels
 RUN pip install --no-cache-dir --no-index --find-links /tmp/wheels Flask==3.0.0 Flask-Cors==4.0.0 gevent==23.9.1 edge-tts==6.1.10 opencv-python-headless>=4.9.0.80 paddlepaddle==3.0.0 paddleocr==2.9.1 translate==3.6.1 requests==2.31.0 numpy==1.26.2
