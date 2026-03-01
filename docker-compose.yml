@@ -20,6 +20,16 @@ services:
       # 示例：sk-xxxxxxxxxxxxxxxxxxxxxxxx
       - DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
       
+      # 【可选】DeepSeek API 地址
+      # 默认：https://api.deepseek.com/v1/chat/completions
+      # 硅基流动示例：https://api.siliconflow.cn/v1/chat/completions
+      # - DEEPSEEK_API_URL=https://api.deepseek.com/v1/chat/completions
+      
+      # 【可选】DeepSeek 模型名称
+      # 默认：deepseek-chat
+      # 硅基流动可用：Qwen/Qwen2.5-7B-Instruct、deepseek-ai/DeepSeek-V2-Chat 等
+      # - DEEPSEEK_MODEL=deepseek-chat
+      
       # 【可选】Qwen API Key（阿里云 DashScope）
       # 申请地址：https://dashscope.console.aliyun.com
       # 如不填写则使用默认测试 Key（可能有限额）
