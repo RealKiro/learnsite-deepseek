@@ -16,7 +16,6 @@
 | 功能 | 路由 | 说明 | 依赖 |
 |------|------|------|------|
 | AI 对话 | `/chat` | 流式输出智能对话 | DeepSeek API |
-| PPT 大纲 | `/aippt` | 主题生成 PPT 大纲 | DeepSeek API |
 | 图片生成 | `/photo` | pollinations 免费图生 | 无需 API |
 | 智谱图片 | `/photos` | 智谱 AI 图片生成 | 智谱 API |
 | 语音合成 | `/voice` | 文本转语音 | edge-tts |
