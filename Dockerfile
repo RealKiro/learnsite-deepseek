@@ -11,7 +11,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libfontconfig1 \
     ffmpeg \
+    git \
     && rm -rf /var/lib/apt/lists/*
+
+# 设置工作目录
+WORKDIR /app
+
+# 从 GitHub 拉取 deepseek 代码（作为后备，会被 volumes 映射覆盖）
+RUN git clone --depth 1 --branch main https://github.com/RealKiro/learnsite.git /tmp/learnsite && \
+    cp -r /tmp/learnsite/deepseek/* /app/ && \
+    rm -rf /tmp/learnsite
+
+# 修改源码以支持环境变量
+RUN sed -i 's/DEEPSEEK_API_URL = "https:\/\/api.deepseek.com\/v1\/chat\/completions"/DEEPSEEK_API_URL = os.getenv("DEEPSEEK_API_URL", "https:\/\/api.deepseek.com\/v1\/chat\/completions")/' /app/deepseek.py && \
+    sed -i 's/DEEPSEEK_MODEL = "deepseek-chat"/DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")/' /app/deepseek.py
 
 # 安装 Python 依赖（使用兼容版本）
 RUN pip install --no-cache-dir torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu && \
@@ -29,10 +42,7 @@ RUN pip install --no-cache-dir torch==2.5.1 torchvision==0.20.1 --index-url http
 # 预下载 EasyOCR 模型（避免首次启动下载慢）
 RUN python -c "import easyocr; easyocr.Reader(['ch_sim', 'en'], gpu=False, verbose=False)"
 
-# 设置工作目录
-WORKDIR /app
-
-# 注意：代码由 learnsite 容器自动拉取（通过 volumes 映射共享）
+# 注意：代码会被 docker-compose 中的 volumes 映射覆盖
 # 宿主机目录结构需要：
 # /volume1/docker/learnsite/app/deepseek/
 #   ├── deepseek.py
