@@ -1,5 +1,11 @@
 version: '3.8'
 
+# =====================================================
+# 部署说明：
+# 1. 先部署 LearnSite（确保 LearnSite 运行成功）
+# 2. 再部署 DeepSeek（映射 LearnSite 的 deepseek 文件夹作为工作目录）
+# =====================================================
+
 services:
   deepseek:
     # 镜像名称：Docker Hub 用户名/仓库名:版本
@@ -44,7 +50,8 @@ services:
       # 监听地址，0.0.0.0 表示监听所有网卡
       - HOST_IP=0.0.0.0
     volumes:
-      # 映射宿主机源码目录（用于开发调试）
+      # 【重要】映射 LearnSite 的 deepseek 文件夹作为工作目录
+      # LearnSite 更新时，DeepSeek 模块也会同步更新
       # 群晖示例：/volume1/docker/learnsite/app/deepseek:/app
       - /volume1/docker/learnsite/app/deepseek:/app
     # 自动重启

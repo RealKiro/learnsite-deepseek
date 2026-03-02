@@ -4,6 +4,13 @@
 
 本项目用于将 LearnSite 项目中的 deepseek 模块（AI 对话、文本转语音、OCR、翻译等功能）Docker 化，方便部署使用。
 
+## 部署顺序
+
+> **重要提示**：请按以下顺序部署
+> 
+> 1. **先部署 LearnSite**（确保 LearnSite 运行成功）
+> 2. **再部署 DeepSeek**（将 LearnSite 项目下的 `deepseek` 文件夹映射为 DeepSeek 项目的工作文件夹）
+
 ## 功能列表
 
 | 功能 | 路由 | 说明 | 依赖 |
@@ -16,21 +23,6 @@
 | 文字识别 | `/ocr` | 图片文字识别 | EasyOCR |
 | 中英翻译 | `/translator` | 中英文互译 | translate |
 | 文件上传 | `/upload` | 文件上传到服务器 | 本地存储 |
-
-## 文件结构
-
-```
-learnsite-deepseek/
-├── Dockerfile           # Docker 构建文件（三阶段构建）
-├── docker-compose.yml  # Docker Compose 配置
-├── .dockerignore       # 忽略文件
-├── README.md           # 项目说明
-├── BUILD.md           # 构建指南（本文件）
-├── LICENSE            # 许可证
-└── .github/
-    └── workflows/
-        └── ci.yml     # GitHub Actions 自动构建
-```
 
 ## 快速开始
 
@@ -71,7 +63,47 @@ docker-compose up -d
 
 ---
 
-### 方式二：映射宿主机源码（开发调试用）
+### 方式二：映射 LearnSite 的 deepseek 文件夹（推荐）
+
+将 LearnSite 项目下的 `deepseek` 文件夹映射为工作目录，代码由 LearnSite 统一管理：
+
+```yaml
+services:
+  deepseek:
+    image: orzg/learnsite-deepseek:latest
+    container_name: learnsite-deepseek
+    restart: unless-stopped
+    ports:
+      - "2000:2000"
+    environment:
+      - DEEPSEEK_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
+      - DEEPSEEK_API_URL=https://api.siliconflow.cn/v1/chat/completions
+      - DEEPSEEK_MODEL=Qwen/Qwen2.5-7B-Instruct
+    volumes:
+      # 映射 LearnSite 的 deepseek 文件夹作为工作目录
+      # 群晖示例：
+      - /volume1/docker/learnsite/app/deepseek:/app
+```
+
+> **为什么映射 LearnSite 的 deepseek 文件夹？**
+> - 代码由 LearnSite 统一管理，无需单独维护
+> - LearnSite 更新时，DeepSeek 模块同步更新
+> - 符合 LearnSite AUTO_UPDATE_SOURCE 的设计理念
+
+**宿主机目录结构要求：**
+```
+deepseek/
+├── deepseek.py      # 主程序
+├── index.html       # 入口页面（导航页）
+├── *.html           # 各功能页面
+├── downloads/       # 图片生成目录
+├── uploads/         # 上传文件目录
+└── downmp3/         # 语音合成目录
+```
+
+---
+
+### 方式三：映射宿主机源码（开发调试用）
 
 如果需要修改代码或使用本地版本，可以映射宿主机目录：
 
@@ -80,17 +112,6 @@ volumes:
   # 映射宿主机源码目录
   # 群晖示例：
   - /volume1/docker/learnsite/app/deepseek:/app
-```
-
-**宿主机目录结构要求：**
-```
-deepseek/
-├── deepseek.py      # 主程序
-├── index.html       # 入口页面（导航页）
-├── *.html           # 各功能页面
-├── downloads/      # 图片生成目录
-├── uploads/         # 上传文件目录
-└── downmp3/        # 语音合成目录
 ```
 
 ## 端口说明
