@@ -13,22 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
-# 设置工作目录
-WORKDIR /app
-
-# 安装 git 并从 GitHub 拉取 deepseek 模块
-RUN apt-get update && apt-get install -y --no-install-recommends git && \
-    mkdir -p /app && \
-    git clone --depth 1 --branch main https://github.com/RealKiro/learnsite.git /tmp/learnsite && \
-    cp -r /tmp/learnsite/deepseek/* /app/ && \
-    rm -rf /tmp/learnsite && \
-    apt-get remove -y git && apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
-
-# 修改源码以支持环境变量（避免硬编码 API Key）
-RUN sed -i 's/DEEPSEEK_API_URL = "https:\/\/api.deepseek.com\/v1\/chat\/completions"/DEEPSEEK_API_URL = os.getenv("DEEPSEEK_API_URL", "https:\/\/api.deepseek.com\/v1\/chat\/completions")/' /app/deepseek.py && \
-    sed -i 's/DEEPSEEK_MODEL = "deepseek-chat"/DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")/' /app/deepseek.py
-
 # 安装 Python 依赖（使用兼容版本）
 RUN pip install --no-cache-dir torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir easyocr && \
@@ -45,8 +29,17 @@ RUN pip install --no-cache-dir torch==2.5.1 torchvision==0.20.1 --index-url http
 # 预下载 EasyOCR 模型（避免首次启动下载慢）
 RUN python -c "import easyocr; easyocr.Reader(['ch_sim', 'en'], gpu=False, verbose=False)"
 
-# 创建必要的目录
-RUN mkdir -p /app/downloads /app/uploads /app/downmp3
+# 设置工作目录
+WORKDIR /app
+
+# 注意：代码由 learnsite 容器自动拉取（通过 volumes 映射共享）
+# 宿主机目录结构需要：
+# /volume1/docker/learnsite/app/deepseek/
+#   ├── deepseek.py
+#   ├── *.html
+#   ├── downloads/
+#   ├── uploads/
+#   └── downmp3/
 
 # 暴露端口
 EXPOSE 2000
@@ -55,5 +48,5 @@ EXPOSE 2000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:2000/health')" || exit 1
 
-# 启动命令（直接运行脚本）
+# 启动命令
 CMD ["python", "/app/deepseek.py"]
